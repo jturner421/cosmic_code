@@ -5,17 +5,19 @@ from datetime import date
 from pydantic.dataclasses import dataclass
 
 
-class OutOfStock(Exception):
-    pass
+class OutOfStockError(Exception):
+    """Raised when a requested SKU cannot be allocated due to no stock."""
 
 
 def allocate(line: OrderLine, batches: list[Batch]) -> str:
     try:
         batch = next(b for b in sorted(batches) if b.can_allocate(line))
         batch.allocate(line)
-        return batch.reference
     except StopIteration:
-        raise OutOfStock(f"Out of stock for sku {line.sku}")
+        msg = f"Out of stock for sku {line.sku}"
+        raise OutOfStock(msg) from None
+    else:
+        return batch.reference
 
 
 @dataclass(frozen=True)
@@ -31,7 +33,7 @@ class Batch:
         self.sku = sku
         self.eta = eta
         self._purchased_quantity = qty
-        self._allocations = set()  # = type: set[OrderLine]
+        self._allocations: set[OrderLine] = set()
 
     def __repr__(self):
         return f"<Batch {self.reference}>"
