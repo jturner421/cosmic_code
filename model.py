@@ -1,14 +1,15 @@
 from __future__ import annotations
-from dataclasses import dataclass
+
 from datetime import date
-from typing import Optional, List, Set
+
+from pydantic.dataclasses import dataclass
 
 
 class OutOfStock(Exception):
     pass
 
 
-def allocate(line: OrderLine, batches: List[Batch]) -> str:
+def allocate(line: OrderLine, batches: list[Batch]) -> str:
     try:
         batch = next(b for b in sorted(batches) if b.can_allocate(line))
         batch.allocate(line)
@@ -25,12 +26,12 @@ class OrderLine:
 
 
 class Batch:
-    def __init__(self, ref: str, sku: str, qty: int, eta: Optional[date]):
+    def __init__(self, ref: str, sku: str, qty: int, eta: date | None):
         self.reference = ref
         self.sku = sku
         self.eta = eta
         self._purchased_quantity = qty
-        self._allocations = set()  # type: Set[OrderLine]
+        self._allocations = set()  # = type: set[OrderLine]
 
     def __repr__(self):
         return f"<Batch {self.reference}>"

@@ -1,6 +1,7 @@
 from datetime import date, timedelta
+
 import pytest
-from model import allocate, OrderLine, Batch, OutOfStock
+from model import Batch, OrderLine, OutOfStock, allocate
 
 today = date.today()
 tomorrow = today + timedelta(days=1)
