@@ -15,7 +15,7 @@ def allocate(line: OrderLine, batches: list[Batch]) -> str:
         batch.allocate(line)
     except StopIteration:
         msg = f"Out of stock for sku {line.sku}"
-        raise OutOfStock(msg) from None
+        raise OutOfStockError(msg) from None
     else:
         return batch.reference
 
