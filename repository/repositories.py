@@ -1,7 +1,8 @@
 from typing import Generic, TypeVar
 
 from sqlalchemy import select
-from model import Batch, OrderLine
+
+from domain.model import Batch, OrderLine
 
 T = TypeVar("T")
 
