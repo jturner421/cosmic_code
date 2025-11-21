@@ -12,6 +12,7 @@ Provide a single Database object (Singleton) that exposes a SQLAlchemy engine an
 """
 
 import os
+import pathlib
 from contextlib import contextmanager
 from threading import Lock
 from typing import ClassVar
@@ -20,6 +21,8 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
+
+from db.orm import perform_mapping
 
 # Load environment variables from .env file
 load_dotenv()
@@ -36,11 +39,13 @@ def run_migrations(connection=None):
         connection: Optional SQLAlchemy connection. If provided, migrations
                     run against this connection (required for in-memory SQLite
                     to ensure migrations use the same connection as the app).
+
     """
     from alembic import command
     from alembic.config import Config
 
-    alembic_cfg = Config("alembic.ini")
+    alembic_ini_path = pathlib.Path(__file__).resolve().parent.parent / "alembic.ini"
+    alembic_cfg = Config(str(alembic_ini_path))
     if connection is not None:
         # Pass connection to env.py via config.attributes
         alembic_cfg.attributes["connection"] = connection
@@ -80,6 +85,9 @@ class Database(metaclass=SingletonMeta):
     """
 
     def __init__(self, url: str = DATABASE_URL):
+        # Perform ORM mapping before engine/session creation
+        perform_mapping()
+
         # Use the provided url (previous code used the module constant unconditionally).
         # For SQLite in-memory tests, we disable thread check and use StaticPool
         # so the same connection is reused across sessions/threads (useful for tests).
