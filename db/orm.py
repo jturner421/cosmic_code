@@ -5,6 +5,7 @@ from model import Batch, OrderLine
 
 mapper_registry = registry()
 _mappings_configured = False
+_mapping_state = {"configured": False}
 
 order_lines = Table(
     "order_lines",
@@ -41,9 +42,7 @@ def perform_mapping():
     This keeps domain models persistence-ignorant while allowing SQLAlchemy
     to handle database operations.
     """
-    global _mappings_configured
-
-    if _mappings_configured:
+    if _mapping_state["configured"]:
         return
 
     mapper_registry.map_imperatively(OrderLine, order_lines)
@@ -51,7 +50,7 @@ def perform_mapping():
         Batch,
         batches,
         properties={
-            "_purchased_quantity": batches.c._purchased_qty,
+            "_purchased_quantity": batches.c._purchased_qty,  # noqa: SLF001
             "_allocations": relationship(
                 OrderLine,
                 secondary=allocations,

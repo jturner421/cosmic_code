@@ -15,14 +15,12 @@ BASE_DIR = pathlib.Path(__file__).resolve().parent
 @pytest.fixture(scope="session")
 def alembic_config():
     alembic_cfg = Config(str(BASE_DIR.parent / "alembic.ini"))
-    # alembic_cfg.set_main_option("script_location", str(BASE_DIR.parent / "alembic"))
     return alembic_cfg
 
 
 # --- Shared engine/connection from the Singleton -----------------------------
 @pytest.fixture(scope="session")
 def engine():
-    # Use the singleton’s engine; it’s configured with StaticPool and check_same_thread=False
     return Database().engine
 
 
@@ -35,11 +33,11 @@ def connection(engine):
     conn.close()
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="session")
 def migrated_db(connection, alembic_config):
     alembic_config.attributes["connection"] = connection
     command.upgrade(alembic_config, "head")
-    connection.commit()  # Ensure clean state for db_session fixture
+    connection.commit()
     db = Database()
     db._Session = sessionmaker(  # noqa: SLF001
         bind=connection,
@@ -57,21 +55,14 @@ def sessionlocal():
     return db.session
 
 
-@pytest.fixture(autouse=True)
-def db_session(connection):
+@pytest.fixture()
+def db_session(connection, migrated_db):
     """
-    Start an outer transaction and a nested SAVEPOINT for each test.
-
-    Any ORM Session you create via Database().session or Database().get_session()
-    will participate because the singleton's sessionmaker is bound to `connection`.
-
-    Tests can freely call commit(); after each inner transaction ends, we reopen
-    the SAVEPOINT so the test can continue to commit.
+    Transactional scope for DB tests; opt-in via the `db` marker or usefixtures.
     """
     from sqlalchemy.orm import Session
 
     outer = connection.begin()
-
     nested = connection.begin_nested()
 
     @event.listens_for(Session, "after_transaction_end")
@@ -81,10 +72,19 @@ def db_session(connection):
 
     try:
         yield
-    except Exception:  # noqa: S110
-        pass
     finally:
         with contextlib.suppress(Exception):
             if outer.is_active:
                 outer.rollback()
         event.remove(Session, "after_transaction_end", _restart_savepoint)
+
+
+def pytest_collection_modifyitems(config, items):
+    """
+    Apply DB fixtures only to tests marked with @pytest.mark.db to avoid
+    impacting pure domain tests.
+    """
+    db_marker = config.getoption("-m")
+    for item in items:
+        if "db" in item.keywords:
+            item.fixturenames.append("db_session")
