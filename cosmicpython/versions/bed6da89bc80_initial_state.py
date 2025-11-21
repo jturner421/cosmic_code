@@ -1,8 +1,8 @@
-"""add allocation and relationship to batch and orderline
+"""Initial State
 
-Revision ID: 8a268c078498
+Revision ID: bed6da89bc80
 Revises: 
-Create Date: 2025-11-21 10:51:15.363792
+Create Date: 2025-11-21 15:50:19.998915
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '8a268c078498'
+revision: str = 'bed6da89bc80'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -25,7 +25,7 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('reference', sa.String(length=255), nullable=True),
     sa.Column('sku', sa.String(length=255), nullable=True),
-    sa.Column('_purchased_qty', sa.Integer(), nullable=True),
+    sa.Column('_purchased_qty', sa.Integer(), nullable=False),
     sa.Column('eta', sa.Date(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
