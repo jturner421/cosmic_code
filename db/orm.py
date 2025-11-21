@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Table
+from sqlalchemy import Column, Date, Integer, String, Table
 from sqlalchemy.orm import registry
 
 from model import OrderLine
@@ -14,13 +14,26 @@ order_lines = Table(
     Column("orderid", String(255)),
 )
 
+batches = Table(
+    "batches",
+    mapper_registry.metadata,
+    Column("reference", String(255), primary_key=True),
+    Column("sku", String(255), primary_key=True),
+    Column("_purchased_qty", Integer),
+    Column("eta", Date),
+)
+
 
 class OrderLineORM:
     """ORM model for OrderLine - mutable for SQLAlchemy"""
-    pass
+
+
+class BatchesORM:
+    """ORM model for Batches"""
 
 
 mapper_registry.map_imperatively(OrderLineORM, order_lines)
+mapper_registry.map_imperatively(BatchesORM, batches)
 
 
 def to_domain(orm_line: OrderLineORM) -> OrderLine:
