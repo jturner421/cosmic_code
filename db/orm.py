@@ -1,15 +1,16 @@
-from sqlalchemy import Column, Date, ForeignKey, Integer, String, Table
+from sqlalchemy import Column, Date, ForeignKey, Integer, MetaData, String, Table
 from sqlalchemy.orm import registry, relationship
 
 from model import Batch, OrderLine
 
 mapper_registry = registry()
+metadata: MetaData = mapper_registry.metadata
 _mappings_configured = False
 _mapping_state = {"configured": False}
 
 order_lines = Table(
     "order_lines",
-    mapper_registry.metadata,
+    metadata,
     Column("id", Integer, primary_key=True, autoincrement=True),
     Column("sku", String(255)),
     Column("qty", Integer, nullable=False),
@@ -18,17 +19,17 @@ order_lines = Table(
 
 batches = Table(
     "batches",
-    mapper_registry.metadata,
+    metadata,
     Column("id", Integer, primary_key=True, autoincrement=True),
     Column("reference", String(255)),
     Column("sku", String(255)),
-    Column("_purchased_qty", Integer),
-    Column("eta", Date),
+    Column("_purchased_qty", Integer, nullable=False),
+    Column("eta", Date, nullable=True),
 )
 
 allocations = Table(
     "allocations",
-    mapper_registry.metadata,
+    metadata,
     Column("id", Integer, primary_key=True, autoincrement=True),
     Column("orderline_id", ForeignKey("order_lines.id")),
     Column("batch_id", ForeignKey("batches.id")),
@@ -45,7 +46,20 @@ def perform_mapping():
     if _mapping_state["configured"]:
         return
 
-    mapper_registry.map_imperatively(OrderLine, order_lines)
+    mapper_registry.map_imperatively(
+        OrderLine,
+        order_lines,
+        properties={
+            "batches": relationship(
+                Batch,
+                secondary=allocations,
+                collection_class=set,
+                back_populates="_allocations",
+            ),
+        },
+    )
+    _mappings_configured = True
+
     mapper_registry.map_imperatively(
         Batch,
         batches,
@@ -58,4 +72,3 @@ def perform_mapping():
             ),
         },
     )
-    _mappings_configured = True

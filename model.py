@@ -1,8 +1,7 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from datetime import date
-
-from pydantic.dataclasses import dataclass
 
 
 class OutOfStockError(Exception):
@@ -20,8 +19,15 @@ def allocate(line: OrderLine, batches: list[Batch]) -> str:
         return batch.reference
 
 
-@dataclass(frozen=True)
+@dataclass(unsafe_hash=True)
 class OrderLine:
+    """
+    Value object for order line items.
+
+    Note: Uses unsafe_hash=True (not frozen=True) for SQLAlchemy compatibility.
+    Do not modify instances after creation.
+    """
+
     orderid: str
     sku: str
     qty: int
