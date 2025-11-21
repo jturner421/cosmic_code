@@ -645,3 +645,6 @@ fabric.properties
 .idea/*.iml
 /tests/cosmicpython.db
 /cosmicpython.db
+/.bmad/
+/.claude/
+/.github/
