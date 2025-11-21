@@ -85,20 +85,17 @@ class Database(metaclass=SingletonMeta):
     """
 
     def __init__(self, url: str = DATABASE_URL):
-        # Perform ORM mapping before engine/session creation
-        perform_mapping()
-
         # Use the provided url (previous code used the module constant unconditionally).
         # For SQLite in-memory tests, we disable thread check and use StaticPool
         # so the same connection is reused across sessions/threads (useful for tests).
+        is_sqlite_memory = url.startswith("sqlite") and ":memory:" in url
+
         self._engine = create_engine(
             url,
-            connect_args={"check_same_thread": False}
-            if url.startswith("sqlite")
-            else {},
+            connect_args={"check_same_thread": False} if url.startswith("sqlite") else {},
             future=True,
             echo=True,
-            poolclass=StaticPool,
+            poolclass=StaticPool if is_sqlite_memory else None,
         )
         # sessionmaker configured for explicit transaction handling:
         # - autocommit=False: manual commit via session.commit()
@@ -153,3 +150,8 @@ class Database(metaclass=SingletonMeta):
             raise
         finally:
             session.close()
+
+
+# Perform ORM mapping eagerly at import time so any domain objects created before
+# Database() instantiation are properly instrumented by SQLAlchemy.
+perform_mapping()

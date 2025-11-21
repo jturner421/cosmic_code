@@ -1,5 +1,6 @@
 from typing import Generic, TypeVar
 
+from sqlalchemy import select
 from model import Batch, OrderLine
 
 T = TypeVar("T")
@@ -16,10 +17,11 @@ class SqlAlchemyRepository(Generic[T]):
         self.session.add(entity)
 
     def get(self, **kwargs) -> T | None:
-        return self.session.query(self.entity_class).filter_by(**kwargs).one_or_none()
+        stmt = select(self.entity_class).filter_by(**kwargs)
+        return self.session.execute(stmt).scalar_one_or_none()
 
     def list(self) -> list[T]:
-        return self.session.query(self.entity_class).all()
+        return self.session.execute(select(self.entity_class)).scalars().all()
 
 
 class BatchRepository(SqlAlchemyRepository[Batch]):
@@ -39,4 +41,5 @@ class OrderLineRepository(SqlAlchemyRepository[OrderLine]):
         super().__init__(session, OrderLine)
 
     def get_by_orderid(self, orderid: str) -> list[OrderLine]:
-        return self.session.query(OrderLine).filter_by(orderid=orderid).all()
+        stmt = select(OrderLine).filter_by(orderid=orderid)
+        return self.session.execute(stmt).scalars().all()

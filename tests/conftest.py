@@ -85,7 +85,6 @@ def db_session(connection):
         pass
     finally:
         with contextlib.suppress(Exception):
-            nested.rollback()
-        with contextlib.suppress(Exception):
-            outer.rollback()
+            if outer.is_active:
+                outer.rollback()
         event.remove(Session, "after_transaction_end", _restart_savepoint)
