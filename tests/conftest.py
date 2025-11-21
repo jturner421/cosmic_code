@@ -39,6 +39,7 @@ def connection(engine):
 def migrated_db(connection, alembic_config):
     alembic_config.attributes["connection"] = connection
     command.upgrade(alembic_config, "head")
+    connection.commit()  # Ensure clean state for db_session fixture
     db = Database()
     db._Session = sessionmaker(  # noqa: SLF001
         bind=connection,
