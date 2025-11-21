@@ -8,17 +8,43 @@ Provide a single Database object (Singleton) that exposes a SQLAlchemy engine an
     - Use Database().session for a quick one-off Session (not context-managed).
     - Use Database().get_session() as a context manager to get a transactional
       session that automatically commits on success and rolls back on error.
+    - On first instantiation, Alembic migrations are auto-applied to "head".
 """
 
+import os
 from contextlib import contextmanager
 from threading import Lock
 from typing import ClassVar
 
+from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-DATABASE_URL = "sqlite:///:memory:"
+# Load environment variables from .env file
+load_dotenv()
+
+# Default to in-memory SQLite if DATABASE_URL not set
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///:memory:")
+
+
+def run_migrations(connection=None):
+    """
+    Run Alembic migrations programmatically to 'head'.
+
+    Args:
+        connection: Optional SQLAlchemy connection. If provided, migrations
+                    run against this connection (required for in-memory SQLite
+                    to ensure migrations use the same connection as the app).
+    """
+    from alembic import command
+    from alembic.config import Config
+
+    alembic_cfg = Config("alembic.ini")
+    if connection is not None:
+        # Pass connection to env.py via config.attributes
+        alembic_cfg.attributes["connection"] = connection
+    command.upgrade(alembic_cfg, "head")
 
 
 class SingletonMeta(type):
@@ -77,6 +103,13 @@ class Database(metaclass=SingletonMeta):
             future=True,
             autoflush=False,
         )
+
+        # Auto-run Alembic migrations to "head" on first instantiation.
+        # For in-memory SQLite, we must use the same connection so migrations
+        # persist in the same database instance.
+        with self._engine.connect() as connection:
+            run_migrations(connection)
+            connection.commit()
 
     @property
     def engine(self):
