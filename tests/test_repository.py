@@ -2,7 +2,7 @@ import pytest
 from sqlalchemy import text
 
 from db.session import Database
-from model import Batch, OrderLine
+from domain.model import Batch, OrderLine
 from repository.repositories import BatchRepository
 
 pytestmark = pytest.mark.db
