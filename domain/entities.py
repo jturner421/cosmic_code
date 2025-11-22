@@ -14,7 +14,8 @@ class Entity(Generic[EntityId]):
     """A base class for all entities"""
 
     id: EntityId = Field(
-        default_factory=lambda: GenericUUID.next_id(), kw_only=True, hash=True
+        default_factory=lambda: GenericUUID.next_id(),
+        kw_only=True,
     )
 
 

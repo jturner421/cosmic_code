@@ -1,25 +1,33 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from datetime import date
 
-from pydantic.dataclasses import dataclass
 
-
-class OutOfStock(Exception):
-    pass
+class OutOfStockError(Exception):
+    """Raised when a requested SKU cannot be allocated due to no stock."""
 
 
 def allocate(line: OrderLine, batches: list[Batch]) -> str:
     try:
         batch = next(b for b in sorted(batches) if b.can_allocate(line))
         batch.allocate(line)
-        return batch.reference
     except StopIteration:
-        raise OutOfStock(f"Out of stock for sku {line.sku}")
+        msg = f"Out of stock for sku {line.sku}"
+        raise OutOfStockError(msg) from None
+    else:
+        return batch.reference
 
 
-@dataclass(frozen=True)
+@dataclass(unsafe_hash=True)
 class OrderLine:
+    """
+    Value object for order line items.
+
+    Note: Uses unsafe_hash=True (not frozen=True) for SQLAlchemy compatibility.
+    Do not modify instances after creation.
+    """
+
     orderid: str
     sku: str
     qty: int
@@ -31,7 +39,7 @@ class Batch:
         self.sku = sku
         self.eta = eta
         self._purchased_quantity = qty
-        self._allocations = set()  # = type: set[OrderLine]
+        self._allocations: set[OrderLine] = set()
 
     def __repr__(self):
         return f"<Batch {self.reference}>"

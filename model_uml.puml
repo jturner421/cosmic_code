@@ -1,0 +1,26 @@
+@startuml
+class OrderLine <<frozen dataclass>> {
+  +orderid: str
+  +sku: str
+  +qty: int
+}
+
+class Batch {
+  +reference: str
+  +sku: str
+  +eta: date | None
+  -_purchased_quantity: int
+  -_allocations: set<OrderLine>
+  +__repr__()
+  +__eq__(other)
+  +__hash__()
+  +__gt__(other)
+  +allocate(line: OrderLine)
+  +deallocate(line: OrderLine)
+  +allocated_quantity(): int
+  +available_quantity(): int
+  +can_allocate(line: OrderLine): bool
+}
+
+Batch o-- "0..*" OrderLine : allocations
+@enduml

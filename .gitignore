@@ -643,3 +643,8 @@ fabric.properties
 /.python-version
 *.xml
 .idea/*.iml
+/tests/cosmicpython.db
+/cosmicpython.db
+/.bmad/
+/.claude/
+/.github/

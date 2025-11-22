@@ -1,7 +1,8 @@
 from datetime import date, timedelta
 
 import pytest
-from model import Batch, OrderLine, OutOfStock, allocate
+
+from domain.model import Batch, OrderLine, OutOfStockError, allocate
 
 today = date.today()
 tomorrow = today + timedelta(days=1)
@@ -44,5 +45,5 @@ def test_raises_out_of_stock_exception_if_cannot_allocate():
     batch = Batch("batch1", "SMALL-FORK", 10, eta=today)
     allocate(OrderLine("order1", "SMALL-FORK", 10), [batch])
 
-    with pytest.raises(OutOfStock, match="SMALL-FORK"):
+    with pytest.raises(OutOfStockError, match="SMALL-FORK"):
         allocate(OrderLine("order2", "SMALL-FORK", 1), [batch])
