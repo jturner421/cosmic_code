@@ -1,0 +1,51 @@
+# Workflow Status Template
+
+# This tracks progress through BMM methodology Analysis, Planning, and Solutioning phases.
+# Implementation phase is tracked separately in sprint-status.yaml
+
+# STATUS DEFINITIONS:
+# ==================
+# Initial Status (before completion):
+#   - required: Must be completed to progress
+#   - optional: Can be completed but not required
+#   - recommended: Strongly suggested but not required
+#   - conditional: Required only if certain conditions met (e.g., if_has_ui)
+#
+# Completion Status:
+#   - {file-path}: File created/found (e.g., "docs/product-brief.md")
+#   - skipped: Optional/conditional workflow that was skipped
+
+generated: "2025-11-21"
+project: "cosmicpython"
+project_type: "learning-modernization"
+selected_track: "quick-flow"
+field_type: "brownfield"
+workflow_path: "quick-flow-brownfield.yaml"
+workflow_status:
+  # Prerequisite - Documentation
+  document-project: "docs/index.md"
+
+  # Discovery Phase (Optional - User Declined)
+  brainstorm-project:
+    status: "skipped"
+    reason: "Not needed for incremental learning/modernization work"
+
+  research:
+    status: "skipped"
+    reason: "Not needed for incremental learning/modernization work"
+
+  # Phase 1 - Planning
+  tech-spec:
+    status: "required"
+    agent: "pm"
+    command: "/bmad:bmm:workflows:tech-spec"
+    output: "Technical Specification with stories"
+    note: "Integrates with existing codebase patterns from document-project"
+
+  # Phase 2 - Implementation
+  sprint-planning:
+    status: "required"
+    agent: "sm"
+    command: "/bmad:bmm:workflows:sprint-planning"
+    output: "Sprint plan with all stories"
+    note: "Creates sprint tracking file for story execution"
