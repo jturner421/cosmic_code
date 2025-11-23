@@ -4,7 +4,12 @@
       "mcp__context7__resolve-library-id",
       "mcp__context7__get-library-docs",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "mcp__serena__list_dir",
+      "SlashCommand(/bmad:bmm:workflows:document-project)",
+      "SlashCommand(/bmad:bmm:workflows:workflow-status)",
+      "mcp__serena__get_symbols_overview",
+      "Bash(tree:*)"
     ],
     "deny": [],
     "ask": []
