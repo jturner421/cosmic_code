@@ -39,7 +39,7 @@ def test_returns_allocation():
     batch = Batch("b1", "COMPLICATED-LAMP", 100, eta=None)
     repo = FakeRepository([batch])
 
-    result = allocate(line, batch.sku, repo, FakeSession())
+    result = allocate(line, repo, FakeSession())
     assert result == "b1"
 
 
@@ -49,7 +49,7 @@ def test_error_for_invalid_sku():
     repo = FakeRepository([batch])
 
     with pytest.raises(InvalidSku, match="Invalid sku NONEXISTENTSKU"):
-        allocate(line, batch.sku, repo, FakeSession())
+        allocate(line, repo, FakeSession())
 
 
 def test_commits():
@@ -57,5 +57,5 @@ def test_commits():
     batch = Batch("b1", "OMINOUS-MIRROR", 100, eta=None)
     repo = FakeRepository([batch])
     session = FakeSession()
-    allocate(line, batch.sku, repo, session)
+    allocate(line, repo, session)
     assert session.committed is True

@@ -8,7 +8,6 @@ from repository.repositories import BatchRepository
 pytestmark = pytest.mark.db
 
 
-@pytest.mark.db
 def test_repository_can_save_a_batch():
     batch = Batch("batch1", "RUSTY-SOAPDISH", 100, eta=None)
     session = Database().session
