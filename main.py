@@ -9,7 +9,7 @@ from service_layer.services import InvalidSku, allocate
 app = FastAPI(title="CosmicPython", version="1.0.0")
 
 
-@app.post("/allocate")
+@app.post("/allocate", status_code=201)
 def allocate_endpoint(orderline: OrderLine):
     session = Database().session
     repo = BatchRepository(session)

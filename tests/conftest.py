@@ -1,15 +1,36 @@
 import contextlib
 import pathlib
+import subprocess
+import time
+from datetime import date
 
+import httpx
 import pytest
 from alembic import command
 from alembic.config import Config
 from sqlalchemy import event
 from sqlalchemy.orm import sessionmaker
 
+import config
 from db.session import Database
+from repository.repositories import BatchRepository
+from service_layer.services import add_batch
 
 BASE_DIR = pathlib.Path(__file__).resolve().parent
+
+
+def wait_for_webapp_to_come_up():
+    """Poll the API until it responds or timeout after 10 seconds."""
+    deadline = time.time() + 10
+    url = config.get_api_url()
+    while time.time() < deadline:
+        try:
+            response = httpx.get(url)
+            if response.status_code == 200:
+                return response
+        except httpx.ConnectError:
+            time.sleep(0.5)
+    pytest.fail("API never came up")
 
 
 @pytest.fixture(scope="session")
@@ -77,6 +98,37 @@ def db_session(connection, migrated_db):
             if outer.is_active:
                 outer.rollback()
         event.remove(Session, "after_transaction_end", _restart_savepoint)
+
+
+@pytest.fixture
+def api_server():
+    """Start uvicorn server for e2e testing."""
+    process = subprocess.Popen(
+        ["uvicorn", "main:app", "--host", "localhost", "--port", "8000"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    wait_for_webapp_to_come_up()
+    yield
+    process.terminate()
+    try:
+        process.wait(timeout=5)
+    except subprocess.TimeoutExpired:
+        process.kill()
+
+
+@pytest.fixture
+def add_stock(db_session):
+    """Fixture to add batches directly to database for test setup."""
+
+    def _add_stock(batches):
+        session = Database().session
+        repo = BatchRepository(session)
+        for ref, sku, qty, eta in batches:
+            eta_date = date.fromisoformat(eta) if eta else None
+            add_batch(ref, sku, qty, eta_date, repo, session)
+
+    return _add_stock
 
 
 def pytest_collection_modifyitems(config, items):

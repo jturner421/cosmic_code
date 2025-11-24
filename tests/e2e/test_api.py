@@ -10,18 +10,18 @@ def random_suffix():
 
 
 def random_sku(name=""):
-    return f"sku-{name}-{random_suffix()}"
+    return f"sku-{name}{random_suffix()}"
 
 
 def random_batchref(name=""):
-    return f"batch-{name}-{random_suffix()}"
+    return f"batch-{name}{random_suffix()}"
 
 
 def random_orderid(name=""):
-    return f"order-{name}-{random_suffix()}"
+    return f"order-{name}{random_suffix()}"
 
 
-def test_happy_path_returns_201_and_allocated_batch(add_stock):
+def test_happy_path_returns_201_and_allocated_batch(api_server, add_stock):
     sku, othersku = random_sku(), random_sku("other")
     earlybatch = random_batchref(1)
     laterbatch = random_batchref(2)
