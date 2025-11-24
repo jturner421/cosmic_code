@@ -8,13 +8,12 @@ import httpx
 import pytest
 from alembic import command
 from alembic.config import Config
-from sqlalchemy import event
+from sqlalchemy import event, text
 from sqlalchemy.orm import sessionmaker
 
 import config
 from db.session import Database
 from repository.repositories import BatchRepository
-from service_layer.services import add_batch
 
 BASE_DIR = pathlib.Path(__file__).resolve().parent
 
@@ -118,17 +117,47 @@ def api_server():
 
 
 @pytest.fixture
-def add_stock(db_session):
+def add_stock():
     """Fixture to add batches directly to database for test setup."""
+    batches_added = set()
+    skus_added = set()
+    url = config.get_postgres_uri()
+    session = Database(url=url).session
+    repo = BatchRepository(session)
 
-    def _add_stock(batches):
-        session = Database().session
-        repo = BatchRepository(session)
-        for ref, sku, qty, eta in batches:
+    def _add_stock(lines):
+        for ref, sku, qty, eta in lines:
             eta_date = date.fromisoformat(eta) if eta else None
-            add_batch(ref, sku, qty, eta_date, repo, session)
+            stmt = text(
+                "INSERT INTO batches (reference, sku,_purchased_qty, eta)"
+                " VALUES (:ref, :sku, :qty, :eta)",
+            )
+            session.execute(stmt, {"ref": ref, "sku": sku, "qty": qty, "eta": eta})
+            stmt2 = text(
+                "SELECT id FROM batches WHERE reference=:ref AND sku=:sku",
+            )
+            [[batch_id]] = session.execute(stmt2, {"ref": ref, "sku": sku}).fetchall()
+            batches_added.add(batch_id)
+            skus_added.add(sku)
+        session.commit()
 
-    return _add_stock
+    yield _add_stock
+
+    for batch_id in batches_added:
+        stmt = text("DELETE FROM allocations WHERE batch_id=:batch_id")
+        session.execute(stmt, {"batch_id": batch_id})
+
+        stmt1 = text(
+            "DELETE FROM allocations WHERE batch_id=:batch_id",
+        )
+        session.execute(stmt1, {"batch_id": batch_id})
+
+    for sku in skus_added:
+        stmt = text(
+            "DELETE FROM order_lines WHERE sku=:sku",
+        )
+        session.execute(stmt, {"sku": sku})
+    session.commit()
 
 
 def pytest_collection_modifyitems(config, items):
