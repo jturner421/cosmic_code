@@ -166,7 +166,7 @@ mypy .
 ### Domain Layer (`domain/`)
 - **Pure business logic** - no dependencies on infrastructure
 - Contains: Entities, Value Objects, Domain Events
-- Entry point: `domain/model.py` (Batch, OrderLine, allocate function)
+- Entry point: `domain/model.py` (Batch, OrderLine, allocate_batch function)
 
 ### Repository Layer (`repository/`)
 - **Data access abstraction** - Repository pattern implementation
@@ -234,7 +234,7 @@ class MyEntityRepository(SqlAlchemyRepository[MyEntity]):
 from fastapi import FastAPI
 app = FastAPI()
 
-@app.post("/allocate")
+@app.post("/allocate_batch")
 def allocate_endpoint(...):
     # Implementation
     pass
@@ -266,9 +266,10 @@ def test_allocation_logic():
     batch = Batch("batch-001", "SMALL-TABLE", 20)
     line = OrderLine("order-123", "SMALL-TABLE", 5)
 
-    batch.allocate(line)
+    batch.allocate_batch(line)
 
     assert batch.available_quantity == 15
+
 
 # Repository test (requires database)
 @pytest.mark.db

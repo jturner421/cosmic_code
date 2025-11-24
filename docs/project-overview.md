@@ -122,8 +122,8 @@ make test
 **Business Rules:**
 - Allocate to current stock before shipments
 - Prefer earlier shipment dates
-- Cannot over-allocate quantities
-- Cannot allocate mismatched SKUs
+- Cannot over-allocate_batch quantities
+- Cannot allocate_batch mismatched SKUs
 
 ### Database Schema
 

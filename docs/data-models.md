@@ -21,13 +21,13 @@ Represents a batch of inventory with a specific SKU and quantity.
 - `_allocations` (Set[OrderLine]): Internal set of allocated order lines
 
 **Key Methods:**
-- `allocate(line: OrderLine)`: Allocate an order line to this batch
+- `allocate_batch(line: OrderLine)`: Allocate an order line to this batch
 - `deallocate(line: OrderLine)`: Remove an allocation
 - `available_quantity`: Property calculating remaining available quantity
 
 **Business Rules:**
-- Cannot allocate if SKUs don't match
-- Cannot allocate if insufficient quantity available
+- Cannot allocate_batch if SKUs don't match
+- Cannot allocate_batch if insufficient quantity available
 - Allocation is idempotent (same line can be allocated multiple times safely)
 
 #### OrderLine
@@ -44,14 +44,14 @@ Represents a line item from an order.
 
 ### Domain Functions
 
-#### allocate()
-**Location:** `domain/model.py:allocate`
+#### allocate_batch()
+**Location:** `domain/model.py:allocate_batch`
 
-**Signature:** `allocate(line: OrderLine, batches: List[Batch]) -> str`
+**Signature:** `allocate_batch(line: OrderLine, batches: List[Batch]) -> str`
 
 Core allocation algorithm that:
 1. Sorts batches by ETA (current stock first, then earliest shipments)
-2. Attempts to allocate the order line to the first suitable batch
+2. Attempts to allocate_batch the order line to the first suitable batch
 3. Returns the reference of the allocated batch
 4. Raises `OutOfStockError` if no batch can fulfill the order
 

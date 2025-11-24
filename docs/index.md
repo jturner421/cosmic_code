@@ -87,7 +87,7 @@ mypy .             # Type check
 ┌─────────────────────────────────┐
 │    Domain Layer (domain/)        │  ← Pure business logic
 │    - Batch, OrderLine entities   │    No framework dependencies
-│    - allocate() function         │
+│    - allocate_batch() function         │
 └────────────┬────────────────────┘
              │
 ┌────────────▼────────────────────┐
@@ -117,7 +117,7 @@ mypy .             # Type check
 **Batch** (`domain/model.py:Batch`)
 - Inventory batch with reference, SKU, quantity, and optional ETA
 - Manages allocations to order lines
-- Business rule: Cannot over-allocate or mismatch SKUs
+- Business rule: Cannot over-allocate_batch or mismatch SKUs
 
 **OrderLine** (`domain/model.py:OrderLine`)
 - Order line item with order ID, SKU, and quantity
@@ -125,7 +125,7 @@ mypy .             # Type check
 
 ### Allocation Logic
 
-**allocate()** function (`domain/model.py:allocate`)
+**allocate_batch()** function (`domain/model.py:allocate_batch`)
 - Sorts batches by ETA (current stock first, then earliest shipments)
 - Allocates order line to first suitable batch
 - Returns batch reference or raises `OutOfStockError`

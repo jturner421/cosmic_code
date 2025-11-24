@@ -7,7 +7,7 @@ This project follows a **Domain-Driven Design (DDD)** architecture with clear se
 ```
 cosmicpython/
 ├── domain/                  # Domain Layer - Core business logic
-│   ├── model.py            # Domain models: Batch, OrderLine, allocate()
+│   ├── model.py            # Domain models: Batch, OrderLine, allocate_batch()
 │   ├── entities.py         # Base entity classes (Entity, AggregateRoot)
 │   ├── value_objects.py    # Value objects (GenericUUID)
 │   └── events.py           # Domain events

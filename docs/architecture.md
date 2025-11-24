@@ -84,8 +84,8 @@ The project follows a layered architecture with dependencies pointing inward tow
 - Represents inventory batch with SKU and quantity
 - Manages allocations to order lines
 - Business rules:
-  - Cannot allocate mismatched SKUs
-  - Cannot over-allocate quantity
+  - Cannot allocate_batch mismatched SKUs
+  - Cannot over-allocate_batch quantity
   - Allocation is idempotent
 
 **OrderLine** (`domain/model.py:OrderLine`)
@@ -95,7 +95,7 @@ The project follows a layered architecture with dependencies pointing inward tow
 
 #### Domain Logic
 
-**allocate() Function** (`domain/model.py:allocate`)
+**allocate_batch() Function** (`domain/model.py:allocate_batch`)
 - Core allocation algorithm
 - Sorts batches by ETA (current stock first)
 - Returns allocated batch reference
@@ -219,7 +219,7 @@ Batch 1───────* Allocation *───────1 OrderLine
 
 **Planned Endpoints:**
 ```
-POST   /allocate           # Allocate order line to batch
+POST   /allocate_batch           # Allocate order line to batch
 GET    /batches            # List all batches
 GET    /batches/{ref}      # Get batch by reference
 POST   /batches            # Create new batch
