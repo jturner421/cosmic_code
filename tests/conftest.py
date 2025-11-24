@@ -8,41 +8,8 @@ from sqlalchemy import event
 from sqlalchemy.orm import sessionmaker
 
 from db.session import Database
-from domain.model import Batch
-from repository import AbstractRepository
 
 BASE_DIR = pathlib.Path(__file__).resolve().parent
-
-
-@pytest.fixture()
-class FakeRepository(AbstractRepository):
-    """Fake repository for entities."""
-
-    def __init__(self, batches):
-        self._batches = set(batches)
-
-    def add(self, entity: T):
-        self._batches.add(entity)
-
-    def get_by_id(self, reference):
-        return next(b for b in self._batches if b.reference == reference)
-
-    def list(self):
-        return self._batches
-
-    @staticmethod
-    def for_batch(ref, sku, qty, eta=None):
-        return FakeRepository([Batch(ref, sku, qty, eta)])
-
-
-@pytest.fixture()
-class FakeSession:
-    """Fake session for entities."""
-
-    committed = False
-
-    def commit(self):
-        self.committed = True
 
 
 @pytest.fixture(scope="session")
