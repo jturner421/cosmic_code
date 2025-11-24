@@ -31,5 +31,8 @@ class AbstractRepository(Generic[Entity, EntityId], metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def get_by_id(self, entity_id: EntityId) -> Entity: ...
 
+    @abc.abstractmethod
+    def list(self) -> list[Entity]: ...
+
     def __getitem__(self, index) -> Entity:
         return self.get_by_id(index)

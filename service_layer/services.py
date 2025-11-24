@@ -1,6 +1,6 @@
 from datetime import date
 
-from domain.model import OrderLine, allocate, Batch
+from domain.model import Batch, OrderLine, allocate
 from repository import AbstractRepository
 from repository.repositories import SqlAlchemyRepository
 
@@ -12,14 +12,24 @@ class InvalidSku(Exception):  # noqa: N818
 def is_valid_sku(sku: str, batches) -> bool:
     return sku in {b.sku for b in batches}
 
+
 def add_batch(
-    ref: str, sku: str, qty: int, eta: date | None, repo: AbstractRepository | SqlAlchemyRepository, session,
+    ref: str,
+    sku: str,
+    qty: int,
+    eta: date | None,
+    repo: AbstractRepository | SqlAlchemyRepository,
+    session,
 ) -> None:
     repo.add(Batch(ref, sku, qty, eta))
     session.commit()
 
+
 def allocate(
-    line: OrderLine, repo: AbstractRepository | SqlAlchemyRepository, session
+    line: OrderLine,
+    sku: str,
+    repo: AbstractRepository | SqlAlchemyRepository,
+    session,
 ) -> str:
     batches = repo.list()
     if not is_valid_sku(line.sku, batches):
