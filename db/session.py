@@ -74,6 +74,23 @@ class SingletonMeta(type):
                 cls._instances[cls] = instance
         return cls._instances[cls]
 
+    def reset_instance(cls) -> None:
+        """
+        TEST-ONLY: Drop the singleton instance for this class.
+
+        Safe to call multiple times. Dispose underlying engine if present.
+        """
+        with cls._lock:
+            instance = cls._instances.pop(cls, None)
+
+        if (
+            not os.getenv("TESTING")
+            and instance is not None
+            and hasattr(instance, "engine")
+        ):
+            # Dispose connections cleanly so tests don't leak resources.
+            instance.engine.dispose()
+
 
 class Database(metaclass=SingletonMeta):
     """
@@ -95,7 +112,9 @@ class Database(metaclass=SingletonMeta):
 
         self._engine = create_engine(
             url,
-            connect_args={"check_same_thread": False} if url.startswith("sqlite") else {},
+            connect_args={"check_same_thread": False}
+            if url.startswith("sqlite")
+            else {},
             future=True,
             echo=True,
             poolclass=StaticPool if is_sqlite_memory else None,
