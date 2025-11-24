@@ -27,7 +27,6 @@ def add_batch(
 
 def allocate(
     line: OrderLine,
-    sku: str,
     repo: AbstractRepository | SqlAlchemyRepository,
     session,
 ) -> str:
