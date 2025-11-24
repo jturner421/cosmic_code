@@ -79,3 +79,5 @@ def perform_mapping():
             ),
         },
     )
+
+    _mapping_state["configured"] = True

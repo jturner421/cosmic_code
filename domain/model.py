@@ -60,6 +60,13 @@ class Batch:
             return True
         return self.eta > other.eta
 
+    def __iter__(self):
+        yield self.reference
+        yield self.sku
+        yield self._purchased_quantity
+        yield self.eta
+
+
     def allocate(self, line: OrderLine):
         from db.orm import OrderLineORM  # noqa: PLC0415
 
