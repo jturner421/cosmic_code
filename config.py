@@ -1,5 +1,9 @@
 import os
 
+import dotenv
+
+dotenv.load_dotenv()
+
 
 def get_api_url():
     host = os.environ.get("API_HOST", "localhost")
@@ -8,12 +12,13 @@ def get_api_url():
 
 
 def get_postgres_uri():
-    host = os.environ.get("DB_HOST", "localhost")
-    port = 54321 if host == "localhost" else 5432
-    password = os.environ.get("DB_PASSWORD", "")
-    user, db_name = "postgres", "cosmic"
-    if password != "":
-        url = f"postgresql://{user}:{password}@{host}:{port}/{db_name}"
-    else:
-        url = f"postgres://{user}@{host}:{port}/{db_name}"
+    url = os.getenv("DATABASE_URL")
+    # host = os.environ.get("DB_HOST", "localhost")
+    # port = 54321 if host == "localhost" else 5432
+    # password = os.environ.get("DB_PASSWORD", "")
+    # user, db_name = "postgres", "cosmic"
+    # if password != "":
+    #     url = f"postgresql+psycopg://{user}:{password}@{host}:{port}/{db_name}"
+    # else:
+    #     url = f"postgresql+psycopg://{user}@{host}:{port}/{db_name}"
     return url
