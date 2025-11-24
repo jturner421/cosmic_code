@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Date, ForeignKey, Integer, MetaData, String, Table
 from sqlalchemy.orm import registry, relationship
 
-from domain.model import Batch, OrderLine
+from domain.model import Batch
 
 mapper_registry = registry()
 metadata: MetaData = mapper_registry.metadata
@@ -36,6 +36,13 @@ allocations = Table(
 )
 
 
+class OrderLineORM:
+    def __init__(self, orderid: str, sku: str, qty: int):
+        self.orderid = orderid
+        self.sku = sku
+        self.qty = qty
+
+
 def perform_mapping():
     """
     Map domain models to database tables using SQLAlchemy imperative mapping.
@@ -47,7 +54,7 @@ def perform_mapping():
         return
 
     mapper_registry.map_imperatively(
-        OrderLine,
+        OrderLineORM,
         order_lines,
         properties={
             "batches": relationship(
@@ -66,7 +73,7 @@ def perform_mapping():
         properties={
             "_purchased_quantity": batches.c._purchased_qty,  # noqa: SLF001
             "_allocations": relationship(
-                OrderLine,
+                OrderLineORM,
                 secondary=allocations,
                 collection_class=set,
             ),

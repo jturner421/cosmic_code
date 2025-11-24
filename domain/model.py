@@ -61,8 +61,15 @@ class Batch:
         return self.eta > other.eta
 
     def allocate(self, line: OrderLine):
+        from db.orm import OrderLineORM  # noqa: PLC0415
+
         if self.can_allocate(line):
-            self._allocations.add(line)
+            orm_line = OrderLineORM(
+                orderid=line.orderid,
+                sku=line.sku,
+                qty=line.qty,
+            )
+            self._allocations.add(orm_line)
 
     def deallocate(self, line: OrderLine):
         if line in self._allocations:
