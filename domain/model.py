@@ -8,7 +8,7 @@ class OutOfStockError(Exception):
     """Raised when a requested SKU cannot be allocated due to no stock."""
 
 
-def allocate(line: OrderLine, batches: list[Batch]) -> str:
+def allocate_batch(line: OrderLine, batches: list[Batch]) -> str:
     try:
         batch = next(b for b in sorted(batches) if b.can_allocate(line))
         batch.allocate(line)

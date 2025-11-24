@@ -1,6 +1,6 @@
 from datetime import date
 
-from domain.model import Batch, OrderLine, allocate
+from domain.model import Batch, OrderLine, allocate_batch
 from repository import AbstractRepository
 from repository.repositories import SqlAlchemyRepository
 
@@ -35,6 +35,6 @@ def allocate(
     if not is_valid_sku(line.sku, batches):
         error = f" Invalid sku {line.sku}"
         raise InvalidSku(error)
-    batchref = allocate(line, batches)
+    batchref = allocate_batch(line, batches)
     session.commit()
     return batchref
