@@ -75,11 +75,6 @@ def add_stock():
         stmt = text("DELETE FROM allocations WHERE batch_id=:batch_id")
         session.execute(stmt, {"batch_id": batch_id})
 
-        stmt1 = text(
-            "DELETE FROM allocations WHERE batch_id=:batch_id",
-        )
-        session.execute(stmt1, {"batch_id": batch_id})
-
     for sku in skus_added:
         stmt = text(
             "DELETE FROM order_lines WHERE sku=:sku",

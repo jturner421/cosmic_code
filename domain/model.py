@@ -66,8 +66,6 @@ class Batch:
         yield self.eta
 
     def allocate(self, line: OrderLine):
-        # from db.orm import OrderLineORM
-
         if self.can_allocate(line):
             self._allocations.add(line)
 

@@ -10,7 +10,14 @@
       "SlashCommand(/bmad:bmm:workflows:workflow-status)",
       "mcp__serena__get_symbols_overview",
       "Bash(tree:*)",
-      "mcp__serena__find_symbol"
+      "mcp__serena__find_symbol",
+      "mcp__serena__initial_instructions",
+      "mcp__serena__check_onboarding_performed",
+      "mcp__serena__read_memory",
+      "mcp__serena__list_memories",
+      "mcp__serena__search_for_pattern",
+      "mcp__serena__find_file",
+      "mcp__serena__think_about_collected_information"
     ],
     "deny": [],
     "ask": []
