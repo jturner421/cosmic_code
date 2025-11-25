@@ -40,3 +40,12 @@ def test_happy_path_returns_201_and_allocated_batch(api_server, add_stock):
     r = httpx.post(f"{url}/allocate", json=data)
     assert r.status_code == 201
     assert r.json()["batchref"] == earlybatch
+
+
+def test_unhappy_path_returns_400_and_error_message(api_server):
+    unknown_sku, orderid = random_sku(), random_orderid()
+    data = {"orderid": orderid, "sku": unknown_sku, "qty": 20}
+    url = config.get_api_url()
+    r = httpx.post(f"{url}/allocate", json=data)
+    assert r.status_code == 400
+    assert r.json()["detail"] == f"Invalid sku {unknown_sku}"
