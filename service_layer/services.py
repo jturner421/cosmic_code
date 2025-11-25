@@ -26,13 +26,16 @@ def add_batch(
 
 
 def allocate(
-    line: OrderLine,
+    orderid: str,
+    sku: str,
+    qty: int,
     repo: AbstractRepository | SqlAlchemyRepository,
     session,
 ) -> str:
+    line = OrderLine(orderid, sku, qty)
     batches = repo.list()
-    if not is_valid_sku(line.sku, batches):
-        error = f"Invalid sku {line.sku}"
+    if not is_valid_sku(sku, batches):
+        error = f"Invalid sku {sku}"
         raise InvalidSku(error)
     batchref = allocate_batch(line, batches)
     session.commit()

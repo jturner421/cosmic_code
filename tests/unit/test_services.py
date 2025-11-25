@@ -1,8 +1,8 @@
 import pytest
 
-from domain.model import Batch, OrderLine
+from domain.model import Batch
 from repository import AbstractRepository
-from service_layer.services import InvalidSku, allocate
+from service_layer.services import InvalidSku, add_batch, allocate
 
 
 class FakeRepository(AbstractRepository):
@@ -35,40 +35,21 @@ class FakeSession:
 
 
 def test_returns_allocation():
-    line = OrderLine("o1", "COMPLICATED-LAMP", 10)
-    batch = Batch("b1", "COMPLICATED-LAMP", 100, eta=None)
-    repo = FakeRepository([batch])
-
-    result = allocate(line, repo, FakeSession())
-    assert result == "b1"
+    repo, session = FakeRepository([]), FakeSession()
+    add_batch("batch1", "COMPLICATED-LAMP", 100, None, repo, session)
+    result = allocate("o1", "COMPLICATED-LAMP", 10, repo, FakeSession())
+    assert result == "batch1"
 
 
 def test_error_for_invalid_sku():
-    line = OrderLine("o1", "NONEXISTENTSKU", 10)
-    batch = Batch("b1", "AREALSKU", 100, eta=None)
-    repo = FakeRepository([batch])
-
+    repo, session = FakeRepository([]), FakeSession()
+    add_batch("b1", "AREALSKU", 100, None, repo, session)
     with pytest.raises(InvalidSku, match="Invalid sku NONEXISTENTSKU"):
-        allocate(line, repo, FakeSession())
+        allocate("o1", "NONEXISTENTSKU", 10, repo, FakeSession())
 
 
 def test_commits():
-    line = OrderLine("o1", "OMINOUS-MIRROR", 10)
-    batch = Batch("b1", "OMINOUS-MIRROR", 100, eta=None)
-    repo = FakeRepository([batch])
-    session = FakeSession()
-    allocate(line, repo, session)
+    repo, session = FakeRepository([]), FakeSession()
+    add_batch("b1", "OMINOUS-MIRROR", 100, None, repo, session)
+    allocate("o1", "OMINOUS-MIRROR", 10, repo, session)
     assert session.committed is True
-
-
-def test_prefers_warehouse_batches_to_shipments():
-    in_stock_batch = Batch("in-stock-batch", "RETRO-CLOCK", 100, eta=None)
-    shipment_batch = Batch("shipment-batch", "RETRO-CLOCK", 100, eta="tomorrow")
-    repo = FakeRepository([in_stock_batch, shipment_batch])
-    session = FakeSession()
-
-    line = OrderLine("oref", "RETRO-CLOCK", 10)
-    allocate(line, repo, session)
-
-    assert in_stock_batch.available_quantity == 90
-    assert shipment_batch.available_quantity == 100

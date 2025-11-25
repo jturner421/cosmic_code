@@ -15,7 +15,7 @@ perform_mapping()
 
 from api.dependencies import get_batch_repository, get_session
 from api.schemas import OrderLineInput
-from domain.model import OrderLine, OutOfStockError
+from domain.model import OutOfStockError
 from repository.repositories import BatchRepository
 from service_layer.services import InvalidSku, allocate
 
@@ -48,13 +48,14 @@ def allocate_endpoint(
     session: Annotated[Session, Depends(get_session)],
 ) -> dict[str, str]:
     # Create domain OrderLine from API input
-    orderline = OrderLine(
-        orderid=orderline_input.orderid,
-        sku=orderline_input.sku,
-        qty=orderline_input.qty,
-    )
     try:
-        batchref = allocate(orderline, repo, session)
+        batchref = allocate(
+            orderline_input.orderid,
+            orderline_input.sku,
+            orderline_input.qty,
+            repo,
+            session,
+        )
     except (OutOfStockError, InvalidSku) as e:
         raise HTTPException(status_code=400, detail=str(e))  # noqa: B904
     return {"batchref": batchref}
