@@ -1,7 +1,8 @@
 """FastAPI dependency injection providers."""
 
-from typing import Generator
+from typing import Annotated, Generator
 
+from fastapi import Depends
 from sqlalchemy.orm import Session
 
 from db.session import Database
@@ -20,7 +21,9 @@ def get_session() -> Generator[Session, None, None]:
         yield session
 
 
-def get_batch_repository(session: Session) -> BatchRepository:
+def get_batch_repository(
+    session: Annotated[Session, Depends(get_session)],
+) -> BatchRepository:
     """Create a BatchRepository with the provided session."""
     db = get_db()
     return BatchRepository(db, session)
