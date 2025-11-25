@@ -1,8 +1,7 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from datetime import date
-
-from pydantic.dataclasses import dataclass
 
 
 class OutOfStockError(Exception):
@@ -70,11 +69,6 @@ class Batch:
         # from db.orm import OrderLineORM
 
         if self.can_allocate(line):
-            # orm_line = OrderLineORM(
-            #     orderid=line.orderid,
-            #     sku=line.sku,
-            #     qty=line.qty,
-            # )
             self._allocations.add(line)
 
     def deallocate(self, line: OrderLine):

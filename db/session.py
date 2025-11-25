@@ -140,7 +140,6 @@ class Database(metaclass=SingletonMeta):
 
     @property
     def engine(self):
-        """Return the underlying SQLAlchemy Engine."""
         return self._engine
 
     @property
