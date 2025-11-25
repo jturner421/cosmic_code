@@ -66,17 +66,16 @@ class Batch:
         yield self._purchased_quantity
         yield self.eta
 
-
     def allocate(self, line: OrderLine):
-        from db.orm import OrderLineORM  # noqa: PLC0415
+        # from db.orm import OrderLineORM
 
         if self.can_allocate(line):
-            orm_line = OrderLineORM(
-                orderid=line.orderid,
-                sku=line.sku,
-                qty=line.qty,
-            )
-            self._allocations.add(orm_line)
+            # orm_line = OrderLineORM(
+            #     orderid=line.orderid,
+            #     sku=line.sku,
+            #     qty=line.qty,
+            # )
+            self._allocations.add(line)
 
     def deallocate(self, line: OrderLine):
         if line in self._allocations:

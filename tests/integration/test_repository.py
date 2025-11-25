@@ -1,12 +1,11 @@
 import os
 
 from sqlalchemy import text
+from sqlalchemy.orm.collections import InstrumentedSet
 
 from db.session import Database
-from domain.model import Batch
+from domain.model import Batch, OrderLine
 from repository.repositories import BatchRepository
-
-# pytestmark = pytest.mark.db
 
 os.environ["TESTING"] = "1"
 
@@ -51,53 +50,53 @@ def insert_order_line(session):
     return orderline_id
 
 
-# def insert_batch(session, batch_id, sku="GENERIC-SOFA", eta=None, qty=100):
-#     stmt = text(
-#         "INSERT INTO batches (reference, sku, _purchased_qty, eta) "
-#         "VALUES (:reference, :sku, :qty, :eta)",
-#     )
-#     session.execute(
-#         stmt,
-#         {
-#             "reference": batch_id,
-#             "sku": sku,
-#             "qty": qty,
-#             "eta": eta,
-#         },
-#     )
-#
-#     stmt = text("SELECT id FROM batches WHERE reference=:reference")
-#     result = session.execute(
-#         stmt,
-#         {"reference": batch_id},
-#     ).fetchall()
-#     [[batch_id]] = result
-#     return batch_id
-#
-#
-# def insert_allocation(session, orderline_id, batch_id):
-#     stmt = text(
-#         "INSERT INTO allocations (orderline_id, batch_id) "
-#         "VALUES (:orderline_id, :batch_id)",
-#     )
-#     session.execute(stmt, {"orderline_id": orderline_id, "batch_id": batch_id})
-#
-#
-# @pytest.mark.db
-# def test_repository_can_retrieve_a_batch_with_allocations():
-#     session = Database().session
-#     orderline_id = insert_order_line(session)
-#     batch1_id = insert_batch(session, "batch1")
-#     insert_batch(session, "batch2")
-#     insert_allocation(session, orderline_id, batch1_id)  # (2)
-#
-#     repo = BatchRepository(session)
-#     retrieved = repo.get_by_reference("batch1")
-#
-#     expected = Batch("batch1", "GENERIC-SOFA", 100, None)
-#     assert retrieved == expected  # Batch.__eq__ only compares reference  #(3)
-#     assert retrieved.sku == expected.sku  # (4)
-#     assert retrieved._purchased_quantity == expected._purchased_quantity
-#     assert retrieved._allocations == {
-#         OrderLine("order1", "GENERIC-SOFA", 12),
-#     }
+def insert_batch(session, batch_id, sku="GENERIC-SOFA", eta=None, qty=100):
+    stmt = text(
+        "INSERT INTO batches (reference, sku, _purchased_qty, eta) "
+        "VALUES (:reference, :sku, :qty, :eta)",
+    )
+    session.execute(
+        stmt,
+        {
+            "reference": batch_id,
+            "sku": sku,
+            "qty": qty,
+            "eta": eta,
+        },
+    )
+
+    stmt = text("SELECT id FROM batches WHERE reference=:reference")
+    result = session.execute(
+        stmt,
+        {"reference": batch_id},
+    ).fetchall()
+    [[batch_id]] = result
+    return batch_id
+
+
+def insert_allocation(session, orderline_id, batch_id):
+    stmt = text(
+        "INSERT INTO allocations (orderline_id, batch_id) "
+        "VALUES (:orderline_id, :batch_id)",
+    )
+    session.execute(stmt, {"orderline_id": orderline_id, "batch_id": batch_id})
+
+
+def test_repository_can_retrieve_a_batch_with_allocations():
+    Database.reset_instance()
+    repo = BatchRepository(Database(url="sqlite:///:memory:"))
+    session = Database(url="sqlite:///:memory:").session
+    orderline_id = insert_order_line(session)
+    batch1_id = insert_batch(session, "batch1")
+    insert_batch(session, "batch2")
+    insert_allocation(session, orderline_id, batch1_id)  # (2)
+
+    retrieved = repo.get_by_reference("batch1")
+
+    expected = Batch("batch1", "GENERIC-SOFA", 100, None)
+    assert retrieved == expected  # Batch.__eq__ only compares reference  #(3)
+    assert retrieved.sku == expected.sku  # (4)
+    assert retrieved._purchased_quantity == expected._purchased_quantity  # noqa: SLF001
+    assert retrieved._allocations == InstrumentedSet(
+        {OrderLine("order1", "GENERIC-SOFA", 12)},
+    )

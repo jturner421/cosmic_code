@@ -36,7 +36,7 @@ async def internal_exception_handler(request: Request, exc: Exception):
 @app.post("/allocate", status_code=201)
 def allocate_endpoint(orderline: OrderLine):
     session = Database().session
-    repo = BatchRepository(session)
+    repo = BatchRepository(Database())
     try:
         batchref = allocate(orderline, repo, session)
 

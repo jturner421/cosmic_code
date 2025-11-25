@@ -1,4 +1,3 @@
-import contextlib
 import pathlib
 import subprocess
 import time
@@ -6,10 +5,7 @@ from datetime import date
 
 import httpx
 import pytest
-from alembic import command
-from alembic.config import Config
-from sqlalchemy import event, text
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import text
 
 import config
 from db.session import Database
@@ -59,7 +55,7 @@ def wait_for_webapp_to_come_up():
 #     command.upgrade(alembic_config, "head")
 #     connection.commit()
 #     db = Database()
-#     db._Session = sessionmaker(  # noqa: SLF001
+#     db._Session = sessionmaker(
 #         bind=connection,
 #         future=True,
 #         expire_on_commit=False,
@@ -119,11 +115,11 @@ def api_server():
 @pytest.fixture
 def add_stock():
     """Fixture to add batches directly to database for test setup."""
-    batches_added = set()
-    skus_added = set()
     url = config.get_postgres_uri()
     session = Database(url=url).session
     repo = BatchRepository(session)
+    batches_added = set()
+    skus_added = set()
 
     def _add_stock(lines):
         for ref, sku, qty, eta in lines:

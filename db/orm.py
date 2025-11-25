@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Date, ForeignKey, Integer, MetaData, String, Table
 from sqlalchemy.orm import registry, relationship
 
-from domain.model import Batch
+from domain.model import Batch, OrderLine
 
 mapper_registry = registry()
 metadata: MetaData = mapper_registry.metadata
@@ -35,12 +35,12 @@ allocations = Table(
     Column("batch_id", ForeignKey("batches.id")),
 )
 
-
-class OrderLineORM:
-    def __init__(self, orderid: str, sku: str, qty: int):
-        self.orderid = orderid
-        self.sku = sku
-        self.qty = qty
+#
+# class OrderLineORM:
+#     def __init__(self, orderid: str, sku: str, qty: int):
+#         self.orderid = orderid
+#         self.sku = sku
+#         self.qty = qty
 
 
 def perform_mapping():
@@ -54,7 +54,7 @@ def perform_mapping():
         return
 
     mapper_registry.map_imperatively(
-        OrderLineORM,
+        OrderLine,
         order_lines,
         properties={
             "batches": relationship(
@@ -73,7 +73,7 @@ def perform_mapping():
         properties={
             "_purchased_quantity": batches.c._purchased_qty,  # noqa: SLF001
             "_allocations": relationship(
-                OrderLineORM,
+                OrderLine,
                 secondary=allocations,
                 collection_class=set,
             ),

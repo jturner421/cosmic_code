@@ -1,6 +1,7 @@
-from typing import Generic, TypeVar
+from typing import ClassVar, Generic, TypeVar
 
 from sqlalchemy import select
+from sqlalchemy.orm import joinedload
 
 from db.session import Database
 from domain.model import Batch, OrderLine
@@ -10,6 +11,8 @@ T = TypeVar("T")
 
 class SqlAlchemyRepository(Generic[T]):
     """Generic SQLAlchemy repository for any entity type."""
+
+    _eager_load_relationships: ClassVar[list] = []
 
     def __init__(self, db: Database, entity_class: type[T]):
         self._db = db
@@ -21,8 +24,10 @@ class SqlAlchemyRepository(Generic[T]):
 
     def get(self, **kwargs) -> T | None:
         stmt = select(self.entity_class).filter_by(**kwargs)
+        for rel_name in self._eager_load_relationships:
+            stmt = stmt.options(joinedload(getattr(self.entity_class, rel_name)))
         with self._db.get_session() as session:
-            return session.execute(stmt).scalar_one_or_none()
+            return session.execute(stmt).unique().scalar_one_or_none()
 
     def list(self) -> list[T]:
         with self._db.get_session() as session:
@@ -31,6 +36,8 @@ class SqlAlchemyRepository(Generic[T]):
 
 class BatchRepository(SqlAlchemyRepository[Batch]):
     """Repository for Batch entities."""
+
+    _eager_load_relationships = ["_allocations"]
 
     def __init__(self, session):
         super().__init__(session, Batch)
