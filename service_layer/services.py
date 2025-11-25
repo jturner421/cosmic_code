@@ -34,6 +34,8 @@ def allocate(
     if not is_valid_sku(line.sku, batches):
         error = f" Invalid sku {line.sku}"
         raise InvalidSku(error)
+    # Add the OrderLine to the session for SQLAlchemy tracking
+    repo.add(line)
     batchref = allocate_batch(line, batches)
     session.commit()
     return batchref

@@ -12,30 +12,35 @@ os.environ["TESTING"] = "1"
 
 def test_repository_can_save_a_batch():
     Database.reset_instance()
-    repo = BatchRepository(Database(url="sqlite:///:memory:"))
+    db = Database(url="sqlite:///:memory:")
+    session = db.session
+    repo = BatchRepository(db, session)
     batch = Batch("batch1", "RUSTY-SOAPDISH", 100, eta=None)
     repo.add(batch)
-    stmt = text("SELECT reference, sku, _purchased_qty, eta FROM batches")
+    session.commit()
     rows = repo.get(reference=batch.reference)
-    # rows = session.execute(stmt).fetchall()
     assert list(rows) == ["batch1", "RUSTY-SOAPDISH", 100, None]
+    session.close()
 
 
 def test_repository_can_retrieve_a_batch():
     Database.reset_instance()
-    repo = BatchRepository(Database(url="sqlite:///:memory:"))
+    db = Database(url="sqlite:///:memory:")
+    session = db.session
+    repo = BatchRepository(db, session)
     batch = Batch("batch1", "RUSTY-SOAPDISH", 100, eta=None)
     repo.add(batch)
+    session.commit()
 
     retrieved = repo.get_by_reference("batch1")
     assert retrieved is not None
     assert retrieved.reference == "batch1"
     assert retrieved.sku == "RUSTY-SOAPDISH"
     assert retrieved._purchased_quantity == 100
+    session.close()
 
 
 def insert_order_line(session):
-    session = Database(url="sqlite:///:memory:").session
     stmt = text(
         "INSERT INTO order_lines (sku, qty, orderid) "
         "VALUES ('GENERIC-SOFA', 12,'order1')",
@@ -84,19 +89,23 @@ def insert_allocation(session, orderline_id, batch_id):
 
 def test_repository_can_retrieve_a_batch_with_allocations():
     Database.reset_instance()
-    repo = BatchRepository(Database(url="sqlite:///:memory:"))
-    session = Database(url="sqlite:///:memory:").session
+    db = Database(url="sqlite:///:memory:")
+    session = db.session
+    repo = BatchRepository(db, session)
+
     orderline_id = insert_order_line(session)
     batch1_id = insert_batch(session, "batch1")
     insert_batch(session, "batch2")
-    insert_allocation(session, orderline_id, batch1_id)  # (2)
+    insert_allocation(session, orderline_id, batch1_id)
+    session.commit()
 
     retrieved = repo.get_by_reference("batch1")
 
     expected = Batch("batch1", "GENERIC-SOFA", 100, None)
-    assert retrieved == expected  # Batch.__eq__ only compares reference  #(3)
-    assert retrieved.sku == expected.sku  # (4)
+    assert retrieved == expected  # Batch.__eq__ only compares reference
+    assert retrieved.sku == expected.sku
     assert retrieved._purchased_quantity == expected._purchased_quantity  # noqa: SLF001
-    assert retrieved._allocations == InstrumentedSet(
+    assert retrieved._allocations == InstrumentedSet(  # noqa: SLF001
         {OrderLine("order1", "GENERIC-SOFA", 12)},
     )
+    session.close()

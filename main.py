@@ -6,6 +6,12 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
+# Initialize ORM mapping BEFORE importing domain models
+from db.orm import perform_mapping
+
+perform_mapping()
+
+from api.schemas import OrderLineInput
 from db.session import Database
 from domain.model import OrderLine, OutOfStockError
 from repository.repositories import BatchRepository
@@ -34,14 +40,20 @@ async def internal_exception_handler(request: Request, exc: Exception):
 
 
 @app.post("/allocate", status_code=201)
-def allocate_endpoint(orderline: OrderLine):
-    session = Database().session
-    repo = BatchRepository(Database())
-    try:
-        batchref = allocate(orderline, repo, session)
-
-    except (OutOfStockError, InvalidSku) as e:
-        raise HTTPException(status_code=400, detail=str(e))  # noqa: B904
+def allocate_endpoint(orderline_input: OrderLineInput) -> dict[str, str]:
+    db = Database()
+    with db.get_session() as session:
+        repo = BatchRepository(db, session)
+        # Create domain OrderLine from API input
+        orderline = OrderLine(
+            orderid=orderline_input.orderid,
+            sku=orderline_input.sku,
+            qty=orderline_input.qty,
+        )
+        try:
+            batchref = allocate(orderline, repo, session)
+        except (OutOfStockError, InvalidSku) as e:
+            raise HTTPException(status_code=400, detail=str(e))  # noqa: B904
     return {"batchref": batchref}
 
 
