@@ -8,16 +8,18 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
+import service_layer.services
+
 # Initialize ORM mapping BEFORE importing domain models
 from db.orm import perform_mapping
 
 perform_mapping()
 
 from api.dependencies import get_batch_repository, get_session
-from api.schemas import OrderLineInput
+from api.schemas import BatchInput, OrderLineInput
 from domain.model import OutOfStockError
 from repository.repositories import BatchRepository
-from service_layer.services import InvalidSku, allocate
+from service_layer.services import InvalidSku, add_batch, allocate
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -59,6 +61,22 @@ def allocate_endpoint(
     except (OutOfStockError, InvalidSku) as e:
         raise HTTPException(status_code=400, detail=str(e))  # noqa: B904
     return {"batchref": batchref}
+
+
+@app.post("/add_batch", status_code=201)
+def add_batch(
+    batch_input: BatchInput,
+    repo: Annotated[BatchRepository, Depends(get_batch_repository)],
+    session: Annotated[Session, Depends(get_session)],
+)-> None:
+    service_layer.services.add_batch(
+        batch_input.ref,
+        batch_input.sku,
+        batch_input.qty,
+        batch_input.eta,
+        repo,
+        session,
+    )
 
 
 @app.get("/")
