@@ -9,7 +9,8 @@
       "SlashCommand(/bmad:bmm:workflows:document-project)",
       "SlashCommand(/bmad:bmm:workflows:workflow-status)",
       "mcp__serena__get_symbols_overview",
-      "Bash(tree:*)"
+      "Bash(tree:*)",
+      "mcp__serena__find_symbol"
     ],
     "deny": [],
     "ask": []
